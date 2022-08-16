@@ -1,0 +1,13 @@
+{
+  "name": "echo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cargo watch -x \"run --bin echo\"",
+    "fmt": "rustfmt ./src/main.rs --edition 2021"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
