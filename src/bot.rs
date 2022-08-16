@@ -206,7 +206,7 @@ impl MessageBody {
         let sar = escap_dot(usd_sar);
         let egp_sar = escap_dot(usd_egp / usd_sar);
 
-        let mut base_text = String::from("*Prices updates 🔥🔥*");
+        let mut base_text = String::from("*Price updates 🔥🔥*");
         let rows = [
             
             format!("\n1 USD \\= *{}* EGP", egp),
