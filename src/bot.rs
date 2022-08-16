@@ -206,14 +206,14 @@ impl MessageBody {
         let sar = escap_dot(usd_sar);
         let egp_sar = escap_dot(usd_egp / usd_sar);
 
-        let mut base_text = String::from("*Prices updates 🔥🔥*");
+        let mut base_text = String::from("*Prices updates*");
         let rows = [
             
             format!("\n1 USD \\= *{}* EGP", egp),
             format!("\n1 USD \\= *{}* SAR", sar),
             format!("\n1 SAR \\= *{}* EGP", egp_sar),
             // Gold 
-            format!("\n*📈 Gold prices _\\(1g\\)_* 👇👇"),
+            format!("\n*Gold prices _\\(1g\\)_*"),
             format!("\nGold 24k ⏩ {} EGP", escap_dot(gold_prices.price_gram_24k * usd_egp)),
             format!("\nGold 22k ⏩ {} EGP", escap_dot(gold_prices.price_gram_22k * usd_egp)),
             format!("\nGold 21k ⏩ {} EGP", escap_dot(gold_prices.price_gram_21k * usd_egp)),
