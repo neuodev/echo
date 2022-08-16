@@ -13,5 +13,4 @@ async fn main() -> Result<(), reqwest::Error> {
 }
 
 // Todo: 1. Error handling
-// Todo: 2. save user data into json file
-// Todo: 3. Extened the logic to include gold as well
+// Todo: 2. Extened the logic to include gold as well

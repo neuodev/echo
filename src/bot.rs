@@ -203,7 +203,7 @@ enum PraseMode {
 impl PraseMode {
     pub fn as_text(&self) -> &'static str {
         match self {
-            PraseMode::HTML => "HTM",
+            PraseMode::HTML => "HTML",
             PraseMode::Markdown => "Markdown",
             PraseMode::MarkdownV2 => "MarkdownV2",
         }
