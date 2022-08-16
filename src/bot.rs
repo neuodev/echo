@@ -78,7 +78,8 @@ impl Bot {
 
     pub async fn send_exchange_rates_msg(chat_id: &str) {
         let rates = Bot::get_exchange_rates().await;
-        let msg = MessageBody::new_exchange_rates_msg(chat_id, &rates);
+        let gold_prices = Bot::get_gold_price().await;
+        let msg = MessageBody::new(chat_id, &rates, &gold_prices);
         Bot::send_message(&msg).await;
     }
 
@@ -89,6 +90,23 @@ impl Bot {
         let rates: ExchangeRates = serde_json::from_str(&body).unwrap();
 
         rates
+    }
+
+    pub async fn get_gold_price() -> GoldPrices {
+        let gold_api_token = env::var("GOLD_API_TOKEN").expect("GOLD_API_TOKEN is missing");
+        let endpoint = format!("https://www.goldapi.io/api/XAU/USD"); // XAU = Gold
+
+        let client = reqwest::Client::new();
+        let res = client
+            .get(endpoint)
+            .header("x-access-token", gold_api_token)
+            .send()
+            .await
+            .unwrap();
+        let body = res.text().await.unwrap();
+        let gold_prices: GoldPrices = serde_json::from_str(&body).unwrap();
+        
+        gold_prices
     }
 
     pub async fn broadcast_updates() {
@@ -180,27 +198,37 @@ pub struct MessageBody {
 }
 
 impl MessageBody {
-    pub fn new(chat_id: &str, text: &str) -> Self {
-        MessageBody {
-            chat_id: chat_id.into(),
-            text: text.into(),
-            parse_mode: PraseMode::MarkdownV2.as_text(),
-        }
-    }
+    pub fn new(chat_id: &str, rates: &ExchangeRates, gold_prices: &GoldPrices) -> Self {
 
-    pub fn new_exchange_rates_msg(chat_id: &str, rates: &ExchangeRates) -> MessageBody {
         let usd_egp = rates.rates.egp;
         let usd_sar = rates.rates.sar;
         let egp = escap_dot(usd_egp);
         let sar = escap_dot(usd_sar);
         let egp_sar = escap_dot(usd_egp / usd_sar);
 
-        let text = format!(
-            "*Prices updates*\n1 USD \\= *{}* EGP\n1 USD \\= *{}* SAR\n1 SAR \\= *{}* EGP",
-            egp, sar, egp_sar
-        );
+        let mut base_text = String::from("*Prices updates*");
+        let rows = [
+            format!("\n1 USD \\= *{}* EGP", egp),
+            format!("\n1 USD \\= *{}* SAR", sar),
+            format!("\n1 SAR \\= *{}* EGP", egp_sar),
+            // Gold 
+            format!("\n*Gold prices _\\(1g\\)_*"),
+            format!("\nGold 24k ⏩ {} EGP", escap_dot(gold_prices.price_gram_24k * usd_egp)),
+            format!("\nGold 22k ⏩ {} EGP", escap_dot(gold_prices.price_gram_22k * usd_egp)),
+            format!("\nGold 21k ⏩ {} EGP", escap_dot(gold_prices.price_gram_21k * usd_egp)),
+            format!("\nGold 20k ⏩ {} EGP", escap_dot(gold_prices.price_gram_20k * usd_egp)),
+            format!("\nGold 18k ⏩ {} EGP", escap_dot(gold_prices.price_gram_18k * usd_egp)),
+        ];
 
-        MessageBody::new(chat_id, &text)
+        for row in rows {
+            base_text.push_str(&row);
+        }
+
+        MessageBody {
+            chat_id: chat_id.into(),
+            text: base_text.into(),
+            parse_mode: PraseMode::MarkdownV2.as_text(),
+        }
     }
 }
 
@@ -236,7 +264,16 @@ pub struct Rates {
     sar: f64,
 }
 
-
 fn escap_dot(price: f64) -> String {
     format!("{:.2}", price).replace(".", "\\.")
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GoldPrices {
+    price_gram_24k: f64,
+    price_gram_22k: f64,
+    price_gram_21k: f64,
+    price_gram_20k: f64,
+    price_gram_18k: f64,
 }
