@@ -12,8 +12,8 @@ use tokio::{
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Chat {
     id: i64,
-    first_name: String,
-    last_name: String,
+    first_name: Option<String>,
+    last_name: Option<String>,
     username: Option<String>,
     #[serde(rename = "type")]
     chat_type: String,
@@ -59,7 +59,6 @@ impl Bot {
 
         let body: Value = serde_json::from_str::<Value>(&body).unwrap();
         let result = body.get("result").unwrap();
-        println!("{:#?}", result);
         let updates: Vec<Update> = serde_json::from_value(result.clone()).unwrap();
 
         updates
