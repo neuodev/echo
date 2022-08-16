@@ -1,6 +1,7 @@
 use serde::{self, Deserialize, Serialize};
-use serde_json::{json, Value};
-use std::env;
+use serde_json::{Value};
+use tokio::{task::JoinHandle, fs::{File, self, OpenOptions}, io::AsyncWriteExt};
+use std::{env, thread, time::Duration, path::Path};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Chat {
@@ -42,8 +43,10 @@ impl Bot {
     }
 
     /// Offical docs for this endpoint https://core.telegram.org/bots/api#getupdates
-    pub async fn get_updates(&self) -> Vec<Update> {
-        let api = format!("{}/getUpdates", self.telegram_endpoint);
+    pub async fn get_updates() -> Vec<Update> {
+        let bot_auth_token = env::var("BOT_AUTH_TOKEN").expect("BOT_AUTH_TOKEN is missing");
+        let telegram_endpoint = format!("https://api.telegram.org/bot{}", bot_auth_token);
+        let api = format!("{}/getUpdates", telegram_endpoint);
         let body = reqwest::get(api).await.unwrap().text().await.unwrap();
         println!("body: {}", body);
         let body: Value = serde_json::from_str::<Value>(&body).unwrap();
@@ -71,6 +74,49 @@ impl Bot {
         let rates: ExchangeRates = serde_json::from_str(&body).unwrap();
         
         rates
+    }
+
+
+    pub async fn poll_updates() -> JoinHandle<()> {
+        tokio::spawn(async {
+            let mut iter = 1;
+            loop {
+                println!("> [update]: {iter}");
+                let mut current_updates = Bot::load_bot_data().await;
+                let mut updates = Bot::get_updates().await;
+                current_updates.append(&mut updates);
+                Bot::update_bot_data(current_updates).await;
+                thread::sleep(Duration::from_secs(6)); // Every 10 mins
+                
+                iter+=1
+            }
+        })
+    }
+
+
+    pub async fn load_bot_data() -> Vec<Update> {
+        let path = Path::new("data.json");
+        if !path.exists() {
+            File::create(path).await.expect("Unable to create data.json");
+        }
+
+        let content = fs::read_to_string(path).await.expect("Failed to read the file");
+
+        if content.is_empty() {
+            return vec![]
+        }
+
+        let updates: Vec<Update> = serde_json::from_str(&content).unwrap();
+
+        updates
+    }
+
+
+    pub async fn update_bot_data(updates: Vec<Update>) {
+        let path = Path::new("data.json");
+        let mut f = OpenOptions::new().write(true).open(path).await.unwrap();
+        let json_str = serde_json::to_string(&updates).unwrap();
+        f.write_all(json_str.as_bytes()).await.unwrap();
     }
 
 }
