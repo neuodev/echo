@@ -2,9 +2,10 @@ use serde::{self, Deserialize, Serialize};
 use serde_json::{Value};
 use tokio::{task::JoinHandle, fs::{File, self, OpenOptions}, io::AsyncWriteExt};
 use std::{env, thread, time::Duration, path::Path};
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Chat {
+pub struct Chat {
     id: i64,
     first_name: String,
     last_name: String,
@@ -48,7 +49,7 @@ impl Bot {
         let telegram_endpoint = format!("https://api.telegram.org/bot{}", bot_auth_token);
         let api = format!("{}/getUpdates", telegram_endpoint);
         let body = reqwest::get(api).await.unwrap().text().await.unwrap();
-        println!("body: {}", body);
+
         let body: Value = serde_json::from_str::<Value>(&body).unwrap();
         let result = body.get("result").unwrap();
         let updates: Vec<Update> = serde_json::from_value(result.clone()).unwrap();
@@ -77,24 +78,34 @@ impl Bot {
     }
 
 
-    pub async fn poll_updates() -> JoinHandle<()> {
+    pub fn poll_updates() -> JoinHandle<()> {
         tokio::spawn(async {
             let mut iter = 1;
             loop {
                 println!("> [update]: {iter}");
-                let mut current_updates = Bot::load_bot_data().await;
-                let mut updates = Bot::get_updates().await;
-                current_updates.append(&mut updates);
-                Bot::update_bot_data(current_updates).await;
+                let mut all_chats = Bot::load_bot_data().await;
+                Bot::get_updates().await.into_iter().for_each(|update| {
+                    all_chats.push(update.message.chat);
+                });
+
+                // Remove duplicates
+                let mut hs = HashMap::new();
+
+                for chat in all_chats {
+                    hs.insert(chat.id, chat);
+                }
+
+                let chats = hs.into_iter().map(|(_, value)| value).collect();
+                Bot::update_bot_data(chats).await;
                 thread::sleep(Duration::from_secs(6)); // Every 10 mins
-                
+
                 iter+=1
             }
         })
     }
 
 
-    pub async fn load_bot_data() -> Vec<Update> {
+    pub async fn load_bot_data() -> Vec<Chat> {
         let path = Path::new("data.json");
         if !path.exists() {
             File::create(path).await.expect("Unable to create data.json");
@@ -106,16 +117,16 @@ impl Bot {
             return vec![]
         }
 
-        let updates: Vec<Update> = serde_json::from_str(&content).unwrap();
+        let chats: Vec<Chat> = serde_json::from_str(&content).unwrap();
 
-        updates
+        chats
     }
 
 
-    pub async fn update_bot_data(updates: Vec<Update>) {
+    pub async fn update_bot_data(chats: Vec<Chat>) {
         let path = Path::new("data.json");
         let mut f = OpenOptions::new().write(true).open(path).await.unwrap();
-        let json_str = serde_json::to_string(&updates).unwrap();
+        let json_str = serde_json::to_string(&chats).unwrap();
         f.write_all(json_str.as_bytes()).await.unwrap();
     }
 

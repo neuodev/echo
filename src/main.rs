@@ -11,7 +11,7 @@ async fn main() -> Result<(), reqwest::Error> {
     // bot.get_updates().await;
     // bot.send_message().await;
     // bot.get_exchange_rates().await;
-    Bot::poll_updates().await;
+    Bot::poll_updates().await.unwrap();
     Ok(())
 }
 
