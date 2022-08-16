@@ -35,7 +35,6 @@ pub struct Update {
 
 pub struct Bot;
 
-
 impl Bot {
     pub fn get_endpoints() -> (String, String) {
         let bot_auth_token = env::var("BOT_AUTH_TOKEN").expect("BOT_AUTH_TOKEN is missing");
@@ -71,7 +70,7 @@ impl Bot {
         let api = format!("{}/sendMessage", telegram_endpoint);
         let client = reqwest::Client::new();
         let res = client.post(api).json(&msg).send().await.unwrap();
-        
+
         if res.status() == StatusCode::BAD_REQUEST {
             println!("Bad request: {:#?}", res.text().await.unwrap())
         }
@@ -110,10 +109,10 @@ impl Bot {
                 handler.await.unwrap()
             }
 
-            // Broadcast every 30min
-            thread::sleep(Duration::from_secs(60 * 30));
+            // Broadcast every 5min
+            thread::sleep(Duration::from_secs(60 * 5));
 
-            count+=1;
+            count += 1;
         }
     }
 
@@ -197,7 +196,7 @@ impl MessageBody {
         1 USD \= {} EGP
         1 USD \= {} SAR
         "#,
-        egp, sar
+            egp, sar
         );
 
         MessageBody::new(chat_id, &text)
