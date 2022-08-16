@@ -1,3 +1,4 @@
+use reqwest::StatusCode;
 use serde::{self, Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -69,7 +70,11 @@ impl Bot {
         let (telegram_endpoint, _) = Bot::get_endpoints();
         let api = format!("{}/sendMessage", telegram_endpoint);
         let client = reqwest::Client::new();
-        let _ = client.post(api).json(&msg).send().await.unwrap();
+        let res = client.post(api).json(&msg).send().await.unwrap();
+        
+        if res.status() == StatusCode::BAD_REQUEST {
+            println!("Bad request: {:#?}", res.text().await.unwrap())
+        }
     }
 
     pub async fn send_exchange_rates_msg(chat_id: &str) {
@@ -87,8 +92,10 @@ impl Bot {
         rates
     }
 
-    pub async fn bradcast_updates() {
+    pub async fn broadcast_updates() {
+        let mut count = 1;
         loop {
+            println!("[broadcast]: {count}");
             let chats = Bot::load_bot_data().await;
             let mut hanlders = vec![];
             for chat in chats {
@@ -104,7 +111,9 @@ impl Bot {
             }
 
             // Broadcast every 30min
-            thread::sleep(Duration::from_secs(50 * 30))
+            thread::sleep(Duration::from_secs(30));
+
+            count+=1;
         }
     }
 
@@ -180,13 +189,15 @@ impl MessageBody {
     }
 
     pub fn new_exchange_rates_msg(chat_id: &str, rates: &ExchangeRates) -> MessageBody {
+        let egp = format!("{}", rates.rates.egp).replace(".", "\\.");
+        let sar = format!("{}", rates.rates.sar).replace(".", "\\.");
         let text = format!(
             r#"
         *Prices updates*
-        1 USD = {} EGP
-        1 USD = {} SAR
+        1 USD \= {} EGP
+        1 USD \= {} SAR
         "#,
-            rates.rates.egp, rates.rates.sar
+        egp, sar
         );
 
         MessageBody::new(chat_id, &text)

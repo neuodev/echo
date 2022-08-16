@@ -7,7 +7,7 @@ use dotenv::dotenv;
 async fn main() -> Result<(), reqwest::Error> {
     dotenv().ok();
     let updates_hanlder = Bot::poll_updates();
-    Bot::bradcast_updates().await;
+    Bot::broadcast_updates().await;
     updates_hanlder.await.unwrap();
     Ok(())
 }
