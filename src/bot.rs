@@ -14,7 +14,7 @@ pub struct Chat {
     id: i64,
     first_name: String,
     last_name: String,
-    username: String,
+    username: Option<String>,
     #[serde(rename = "type")]
     chat_type: String,
 }
@@ -59,6 +59,7 @@ impl Bot {
 
         let body: Value = serde_json::from_str::<Value>(&body).unwrap();
         let result = body.get("result").unwrap();
+        println!("{:#?}", result);
         let updates: Vec<Update> = serde_json::from_value(result.clone()).unwrap();
 
         updates
@@ -136,7 +137,7 @@ impl Bot {
 
                 let chats = hs.into_iter().map(|(_, value)| value).collect();
                 Bot::update_bot_data(chats).await;
-                thread::sleep(Duration::from_secs(60 * 10)); // Every 10 mins
+                thread::sleep(Duration::from_secs(60)); // Every 1 min
 
                 iter += 1
             }
@@ -189,15 +190,15 @@ impl MessageBody {
     }
 
     pub fn new_exchange_rates_msg(chat_id: &str, rates: &ExchangeRates) -> MessageBody {
-        let egp = format!("{}", rates.rates.egp).replace(".", "\\.");
-        let sar = format!("{}", rates.rates.sar).replace(".", "\\.");
+        let usd_egp = rates.rates.egp;
+        let usd_sar = rates.rates.sar;
+        let egp = escap_dot(usd_egp);
+        let sar = escap_dot(usd_sar);
+        let egp_sar = escap_dot(usd_egp / usd_sar);
+
         let text = format!(
-            r#"
-        *Prices updates*
-        1 USD \= {} EGP
-        1 USD \= {} SAR
-        "#,
-            egp, sar
+            "*Prices updates*\n1 USD \\= *{}* EGP\n1 USD \\= *{}* SAR\n1 SAR \\= *{}* EGP",
+            egp, sar, egp_sar
         );
 
         MessageBody::new(chat_id, &text)
@@ -234,4 +235,9 @@ pub struct Rates {
     egp: f64,
     #[serde(rename = "SAR")]
     sar: f64,
+}
+
+
+fn escap_dot(price: f64) -> String {
+    format!("{:.2}", price).replace(".", "\\.")
 }
