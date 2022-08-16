@@ -8,6 +8,21 @@ Echo is a telegram bot that can send hourly updates about the current price of U
 
 You can find the bot on telgram with by searching about `@echo_v1_bot` and then you can start getting hourly updates about the prices
 
+## Message Example
+
+```
+Prices updates 🔥🔥
+1 USD = 19.15 EGP
+1 USD = 3.75 SAR
+1 SAR = 5.10 EGP
+📈 Gold prices (1g) 👇👇
+Gold 24k ⏩ 1093.94 EGP
+Gold 22k ⏩ 1002.78 EGP
+Gold 21k ⏩ 957.20 EGP
+Gold 20k ⏩ 911.62 EGP
+Gold 18k ⏩ 820.46 EGP
+```
+
 # This is on your own you need these three env variables
 
 ```bash
