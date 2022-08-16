@@ -11,6 +11,3 @@ async fn main() -> Result<(), reqwest::Error> {
     updates_hanlder.await.unwrap();
     Ok(())
 }
-
-// Todo: 1. Error handling
-// Todo: 2. Extened the logic to include gold as well

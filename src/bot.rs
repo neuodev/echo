@@ -111,7 +111,7 @@ impl Bot {
             }
 
             // Broadcast every 30min
-            thread::sleep(Duration::from_secs(30));
+            thread::sleep(Duration::from_secs(60 * 30));
 
             count+=1;
         }
@@ -136,7 +136,7 @@ impl Bot {
 
                 let chats = hs.into_iter().map(|(_, value)| value).collect();
                 Bot::update_bot_data(chats).await;
-                thread::sleep(Duration::from_secs(6)); // Every 10 mins
+                thread::sleep(Duration::from_secs(60 * 10)); // Every 10 mins
 
                 iter += 1
             }
