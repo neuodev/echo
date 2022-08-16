@@ -126,6 +126,7 @@ impl Bot {
                     all_chats.push(update.message.chat);
                 });
 
+                println!("[update-count]: {}", all_chats.len());
                 // Remove duplicates
                 let mut hs = HashMap::new();
 
