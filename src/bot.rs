@@ -2,7 +2,7 @@ use reqwest::StatusCode;
 use serde::{self, Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use std::{env, path::Path, thread, time::Duration};
+use std::{env, path::Path, thread};
 use tokio::{
     fs::{self, File, OpenOptions},
     io::AsyncWriteExt,
