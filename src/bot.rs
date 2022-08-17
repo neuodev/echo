@@ -8,6 +8,7 @@ use tokio::{
     io::AsyncWriteExt,
     task::JoinHandle,
 };
+use humantime::parse_duration;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Chat {
@@ -109,7 +110,7 @@ impl Bot {
         gold_prices
     }
 
-    pub async fn broadcast_updates() {
+    pub async fn broadcast_updates(interval: String) {
         let mut count = 1;
         loop {
             println!("[broadcast]: {count}");
@@ -127,15 +128,15 @@ impl Bot {
                 handler.await.unwrap()
             }
 
-            // Broadcast every 5min
-            thread::sleep(Duration::from_secs(60 * 5));
+            let interval = parse_duration(&interval).expect("Invalid duration");
+            thread::sleep(interval);
 
             count += 1;
         }
     }
 
-    pub fn poll_updates() -> JoinHandle<()> {
-        tokio::spawn(async {
+    pub fn poll_updates(interval: String) -> JoinHandle<()> {
+        tokio::spawn(async move {
             let mut iter = 1;
             loop {
                 println!("> [update]: {iter}");
@@ -154,7 +155,9 @@ impl Bot {
 
                 let chats = hs.into_iter().map(|(_, value)| value).collect();
                 Bot::update_bot_data(chats).await;
-                thread::sleep(Duration::from_secs(60)); // Every 1 min
+
+                let interval = parse_duration(&interval).expect("Invalid duration");
+                thread::sleep(interval);
 
                 iter += 1
             }
