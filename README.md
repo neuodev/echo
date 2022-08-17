@@ -23,6 +23,26 @@ Gold 20k ⏩ 911.62 EGP
 Gold 18k ⏩ 820.46 EGP
 ```
 
+## Run with configs
+
+```bash
+USAGE:
+    echo.exe [OPTIONS]
+
+OPTIONS:
+    -b, --broadcast-interval <BROADCAST_INTERVAL>
+            Time to send the prices for all users [default: 8h]
+
+    -h, --help
+            Print help information
+
+    -u, --update-iterval <UPDATE_ITERVAL>
+            Time to poll latest updates from telegram ans store it in a local file [default: 10m]
+
+    -V, --version
+            Print version information
+```
+
 # This is on your own you need these three env variables
 
 ```bash
