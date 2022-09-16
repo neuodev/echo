@@ -6,7 +6,7 @@
 
 Echo is a telegram bot that can send hourly updates about the current price of USD/EGP, USD/ASR and gold prices.
 
-You can find the bot on telgram with by searching about `@echo_v1_bot` and then you can start getting hourly updates about the prices
+You can find the bot on telegram with by searching about `@echo_v1_bot` and then you can start getting hourly updates about the prices
 
 ## Message Example
 
